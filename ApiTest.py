@@ -33,9 +33,7 @@ with open("results.json", 'w') as file:
         videoitems[hermit.name].append(videos)
         print(f"Appended videos for {hermit.name}")
         for i, video in enumerate(videos):
-            data[str(hermit.name)].append({
-                str(i): video['snippet']['title']
-            })
+            data[str(hermit.name)].append(video['snippet']['title'])
             print(f"Wrote video {i} for {hermit.name}")
     indent = 2
     json.dump(data, file, indent = 1, sort_keys=True)
