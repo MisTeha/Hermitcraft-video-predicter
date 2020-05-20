@@ -1,4 +1,4 @@
-from Hermits import HermitIDs
+from hermits import HermitIDs
 from googleapiclient.discovery import build
 import json
 
@@ -29,7 +29,7 @@ with open("results.json", 'w') as file:
     for hermit in HermitIDs:
         data[hermit.name] = []
         videoitems[hermit.name] = []
-        videos = getChannelVideos(hermit)
+        videos = getChannelVideos(hermit.value['id'])
         videoitems[hermit.name].append(videos)
         print(f"Appended videos for {hermit.name}")
         for i, video in enumerate(videos):
