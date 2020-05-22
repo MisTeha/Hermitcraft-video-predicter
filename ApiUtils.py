@@ -21,6 +21,7 @@ class YTChannel:
     def getUploadsPlaylist(self):
         return youtube.channels().list(id=self.channelId, part='contentDetails').execute()['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     
+
     #TODO: include "no video" exception. 
     #Returns a list of self's videos. Keyword being the filter, if given.
     def getChannelVideos(self, maxResults=39):
@@ -28,10 +29,25 @@ class YTChannel:
 
         part = 'snippet'
         keyword = self.keyword
+        pageToken = None
         videos = youtube.playlistItems().list(playlistId=self.getUploadsPlaylist(), part=part, maxResults=maxResults).execute()['items']
         return [video for video in videos if keyword in video['snippet']['title']]
+
+        for i in range(5):
+            result = youtube.playlistItems().list(playlistId=self.getUploadsPlaylist(), part=part, maxResults=maxResults).execute()
+            pageToken = result.get('nextPageToken')
+             
+
+            if keyword in result['items'][0]['snippet']['title']:
+                return result['items']
+            elif pageToken is None:
+                break
+        raise Exception("No videos found")
+            
+
     #TODO: merge this with getChannelVideos()
     #Returns the latest video. Keyword being the filter, if given.
+    """
     def getLatestVideo(self):
         found = False
         
@@ -50,31 +66,12 @@ class YTChannel:
     #Takes a list of 
     #Returns a list of datetime objects.
     @staticmethod
-    def getTimestamps(videos):
+    def getTimestamp(video):
         #Apparently Python can't parse standard ISO-8601 properly.
         timeformat = "%Y-%m-%dT%H:%M:%SZ"
-        return [datetime.datetime.strptime(video['snippet']['publishedAt'], timeformat) for video in videos]
-
-    #Returns average time between timestamps in milliseconds.
-    @staticmethod 
-    def getListAveragePeriod(timestamps):
-        assert isinstance(timestamps, list)
-        final = 0
-        for i in range(len(timestamps) - 1):
-            final += datetimeToMillis(timestamps[i]) - datetimeToMillis(timestamps[i + 1])
-        return final / (len(timestamps) - 1)
-
-    @property
-    def averagePeriod(self):
-        return self.getListAveragePeriod(self.getTimestamps(self.videos))
+        return datetime.datetime.strptime(video['snippet']['publishedAt'], timeformat)
+"""
     
-    def getTimeUntilNextVideo(self):
-        now = datetimeToMillis(datetime.datetime.utcnow())
-        latestVideoTime = datetimeToMillis(self.getTimestamps(self.latestVideo)[0])
-        sincelastvideo = now - latestVideoTime
-        period = self.averagePeriod
-
-        return period - sincelastvideo
 
     
 class Hermit(YTChannel):
